@@ -7,13 +7,15 @@ import soundfile
 import pandas
 import random
 import warnings
-from copy import deepcopy
+import math
+import copy
+# from copy import deepcopy
 from collections import namedtuple
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import webrtcvad
-import gpuRIR
+# import gpuRIR
 from utils import load_file
 
 # %% Util functions
@@ -597,7 +599,7 @@ class LocataDataset(Dataset):
 		elif fs < self.fs:
 			raise Exception('The sampling rate of the file ({}Hz) was lower than self.fs ({}Hz'.format(fs, self.fs))
 
-		mic_signals_ori = deepcopy(mic_signals)
+		mic_signals_ori = copy.deepcopy(mic_signals)
 
 		# Remove initial silence
 		start = np.argmax(mic_signals[:,0] > mic_signals[:,0].max()*0.15)
@@ -727,7 +729,7 @@ class LocataDataset(Dataset):
 		elif vad_from == 'dataset':
 			vad = sensor_vads.transpose(1,0)
 
-		acoustic_scene.mic_vad_sources = deepcopy(vad) # (nsample, nsource)
+		acoustic_scene.mic_vad_sources = copy.deepcopy(vad) # (nsample, nsource)
 		acoustic_scene.mic_vad = np.sum(vad, axis=1)>0.5 # for vad of mixed sensor signals of source
 		# acoustic_scene.mic_signal = mic_signal*1
 		# acoustic_scene.mic_signal_start = start*1
@@ -752,7 +754,7 @@ class LocataDataset(Dataset):
 class Segmenting_SRPDNN(object):
 	""" Segmenting transform.
 	"""
-	def __init__(self, K, step, window=None):
+	def __init__(self, K, step, window=None, fs=16000):
 		self.K = K
 		self.step = step
 		if window is None:
@@ -764,6 +766,8 @@ class Segmenting_SRPDNN(object):
 			self.w = window
 		else:
 			raise Exception('window must be a NumPy window function or a Numpy vector with length K')
+		
+		self.fs = fs
 
 	def __call__(self, x, acoustic_scene):
 		# N_mics = x.shape[1]
@@ -825,7 +829,7 @@ class Segmenting_SRPDNN(object):
 			acoustic_scene.mic_vad_sources = np.array(vad_sources).transpose(1,2,0) # (nsegment, nsample, nsource)
 
 		# Timestamp for each window
-		acoustic_scene.tw = np.arange(0, (L-self.K), self.step) / acoustic_scene.fs
+		acoustic_scene.tw = np.arange(0, (L-self.K), self.step) / self.fs # acoustic_scene.fs
 
 		return x, acoustic_scene
 

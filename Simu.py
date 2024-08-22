@@ -9,17 +9,17 @@ from Dataset import Parameter
 import Dataset as at_dataset
 import tqdm
 if args.train:
-    data_num = 10
+    data_num = 166816
     stage = 'train'
     set_seed(100)
 
 if args.test:
-    data_num = 10
+    data_num = 5000
     stage = 'test'
     set_seed(101)
 
 if args.dev:
-    data_num = 10
+    data_num = 992
     stage = 'dev'
     set_seed(102)
 

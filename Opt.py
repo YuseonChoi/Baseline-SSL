@@ -29,7 +29,7 @@ class opt():
         parser.add_argument('--checkpoint-start', action='store_true', default=False, help='train model from saved checkpoints (default: False)')
         parser.add_argument('--time', type=str, default=self.time, metavar='Time', help='time flag')
     
-        parser.add_argument('--sources', type=int, nargs='+', default=[1], metavar='Sources', help='Number of sources (default: 1, 2)')
+        parser.add_argument('--sources', type=int, nargs='+', default=[2], metavar='Sources', help='Number of sources (default: 1, 2)')
         parser.add_argument('--source-state', type=str, default='mobile', metavar='SourceState', help='State of sources (default: Mobile)')
         parser.add_argument('--localize-mode', type=str, nargs='+', default=['IDL','kNum', 1], metavar='LocalizeMode', help='Mode for localization (default: Iterative detection and localization method, Unknown source number, Maximum source number is 2)')
         # e.g., ['IDL','unkNum', 2], ['IDL','kNum', 1], ['PD','kNum', 1]
@@ -38,7 +38,7 @@ class opt():
         parser.add_argument('--bz', type=int, nargs='+', default=[1,1,1], metavar='TrainValTestBatch', help='batch size for training, validation and test (default: 1, 1, 5)')
         # parser.add_argument('--val-bz', type=int, default=2 , metavar='ValBatch', help='batch size for validating (default: 2)')
         # parser.add_argument('--gpu-call-bz', type=int, default=1, metavar='GPUCallBatch', help='batch size of each gpu call (default: 2)')
-        parser.add_argument('--epochs', type=int, default=100, metavar='Epoch', help='number of epochs to train (default: 100)')
+        parser.add_argument('--epochs', type=int, default=30, metavar='Epoch', help='number of epochs to train (default: 100)')
         parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate (default:0.001)')
         parser.add_argument('--datasetMode', type=str, default='simulate', metavar='datasetMode', help='select dataset (default:simulate)')
                    

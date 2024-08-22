@@ -64,7 +64,7 @@ if __name__ == "__main__":
 		learner.cpu()
 	if args.use_amp:
 		learner.amp()
-	learner.resume_checkpoint(checkpoints_dir='/exp/04231627/', from_latest=False)
+	learner.resume_checkpoint(checkpoints_dir='./exp/08130950/', from_latest=False)
 	
 	if args.datasetMode == 'simulate':
 		test_path = [dirs['sensig_test']]

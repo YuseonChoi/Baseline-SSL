@@ -116,21 +116,23 @@ class Learner(ABC):
 
 			optimizer.zero_grad()
 
-			avg_loss = avg_beta * avg_loss + (1 - avg_beta) * loss_batch.item()
-			pbar.set_postfix(loss=avg_loss / (1 - avg_beta ** (batch_idx + 1)))
-			# pbar.set_postfix(loss=loss.item())
-			pbar.update()
+			with torch.no_grad():
+				avg_loss = avg_beta * avg_loss + (1 - avg_beta) * loss_batch.item()
+				pbar.set_postfix(loss=avg_loss / (1 - avg_beta ** (batch_idx + 1)))
+				# pbar.set_postfix(loss=loss.item())
+				pbar.update()
 
-			loss += loss_batch.item()
+				loss += loss_batch.item()
 
-			if return_metric: 
-				pred_batch, gt_batch = self.predgt2DOA(pred_batch = pred_batch, gt_batch = gt_batch)
-				metric_batch = self.evaluate(pred=pred_batch, gt=gt_batch)
-				if batch_idx==0:
+				if return_metric: 
+					pred_batch, gt_batch = self.predgt2DOA(pred_batch = pred_batch, gt_batch = gt_batch)
+					metric_batch = self.evaluate(pred=pred_batch, gt=gt_batch)
+					if batch_idx==0:
+						for m in metric_batch.keys():
+							metric[m] = 0
 					for m in metric_batch.keys():
-						metric[m] = 0
-				for m in metric_batch.keys():
-					metric[m] += metric_batch[m].item()
+						metric[m] += metric_batch[m].item()
+
 
 		loss /= len(pbar)
 		if return_metric: 
@@ -334,8 +336,8 @@ class Learner(ABC):
 			#self.max_score = checkpoint["max_score"]
 			# self.optimizer.load_state_dict(checkpoint["optimizer"])
 			if self.use_amp:
-				self.scaler.load_state_dict(checkpoint["scalar"])
-			self.model.load_state_dict(checkpoint["state_dict"])
+				self.scaler.load_state_dict(checkpoint["scalar"], strict=False)
+			self.model.load_state_dict(checkpoint["state_dict"], strict=False)
 
 			# if self.rank == 0:
 			print(f"Model checkpoint loaded. Training will begin at {self.start_epoch} epoch.")
@@ -350,7 +352,7 @@ class Learner(ABC):
 			# device = {'cuda:%d' % 0: 'cuda:%d' % self.rank}
 			checkpoint = torch.load(best_model_path, map_location=self.device)
 
-			self.model.load_state_dict(checkpoint["model"])
+			self.model.load_state_dict(checkpoint["model"], strict=False)
 
 
 
@@ -366,7 +368,7 @@ class SourceTrackingFromSTFTLearner(Learner):
 
 		self.nele = nele
 		self.nazi = nazi
-
+		self.loss = self.mse_loss
 		self.nfft = nfft
 		#self.nf_used = int(self.nfft/2*fre_used_ratio)
 		if fre_used_ratio == 1:
@@ -393,7 +395,7 @@ class SourceTrackingFromSTFTLearner(Learner):
 
 		data = []
 		if mic_sig_batch is not None:
-			mic_sig_batch = mic_sig_batch.to(self.device)
+			mic_sig_batch = mic_sig_batch.to(self.device) ## 검증: cpu/cuda 출력 여부
 			
 			stft = self.dostft(signal=mic_sig_batch) # (nb,nf,nt,nch)
 			stft = stft.permute(0, 3, 1, 2)  # (nb,nch,nf,nt)
@@ -603,6 +605,7 @@ class SourceTrackingFromSTFTLearner(Learner):
 		vad_pred = pred['vad_sources'] 
 		if idx != None:
 			save_path = './locata_result/'
+			# 질문: 이걸 cpu로 하는 이유
 			np.save(save_path+str(idx)+'_gt',doa_gt.cpu().numpy())
 			np.save(save_path+str(idx)+'_est',doa_pred.cpu().numpy())
 			np.save(save_path+str(idx)+'_vadgt',vad_gt.cpu().numpy())

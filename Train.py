@@ -40,7 +40,7 @@ if __name__ == "__main__":
 	seg_len = int(win_len*win_shift_ratio*(seg_fra_ratio+1))
 	seg_shift = int(win_len*win_shift_ratio*seg_fra_ratio)
 
-	segmenting = at_dataset.Segmenting_SRPDNN(K=seg_len, step=seg_shift, window=None)
+	segmenting = at_dataset.Segmenting_SRPDNN(K=seg_len, step=seg_shift, window=None, fs=fs)
 
 	# Room acoustics
 	dataset_train = at_dataset.FixTrajectoryDataset(
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 	res_the = 37 # Maps resolution (elevation) 
 	res_phi = 73 # Maps resolution (azimuth) 
 
-	net = at_model.FN_SSL()
+	net = at_model.FN_SSL(is_doa=False)
 	# from torchsummary import summary
 	# summary(net,input_size=(4,256,100),batch_size=55,device="cpu")
 	print('# Parameters:', sum(param.numel() for param in net.parameters())/1000000, 'M')
@@ -92,8 +92,8 @@ if __name__ == "__main__":
 		# trajectories_per_batch = args.train_bz
 	lr = args.lr
 	nepoch = args.epochs
-	dataloader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=args.bz[0], shuffle=True, num_workers=8)
-	dataloader_val = torch.utils.data.DataLoader(dataset=dataset_dev, batch_size=args.bz[1], shuffle=False, num_workers=8)
+	dataloader_train = torch.utils.data.DataLoader(dataset=dataset_train, batch_size=args.bz[0], shuffle=True, num_workers=1, pin_memory=True, persistent_workers=True)
+	dataloader_val = torch.utils.data.DataLoader(dataset=dataset_dev, batch_size=args.bz[1], shuffle=False, num_workers=1, pin_memory=True, persistent_workers=False)
 
 	for epoch in range(learner.start_epoch, nepoch+1, 1):
 		print('\nEpoch {}/{}:'.format(epoch, nepoch))
